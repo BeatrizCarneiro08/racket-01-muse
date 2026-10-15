@@ -14,13 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_recommendation_gate: {
+        Row: {
+          id: string
+          message: string
+          status: number
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          message: string
+          status: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          message?: string
+          status?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_recommendation_limits: {
+        Row: {
+          id: string
+          requests: number
+          window_start: string
+        }
+        Insert: {
+          id: string
+          requests?: number
+          window_start?: string
+        }
+        Update: {
+          id?: string
+          requests?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_ai_recommendation_slot: {
+        Args: { slot_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
