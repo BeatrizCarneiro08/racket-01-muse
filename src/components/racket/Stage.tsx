@@ -28,6 +28,19 @@ function Scene({config, scan, command, onObject, onCamera, onReady, onError}:{co
     c.target.set(0,.9,.15); c.update();
   },[camera,command,distance]);
   useEffect(()=>{const handler=(e:Event)=>{e.preventDefault();onError('The 3D connection was lost. Reload to reconnect.');}; gl.domElement.addEventListener('webglcontextlost',handler);return()=>gl.domElement.removeEventListener('webglcontextlost',handler);},[gl,onError]);
+  useEffect(()=>{
+    const element=gl.domElement;
+    const handler=(event:KeyboardEvent)=>{
+      const c=controls.current;if(!c)return;
+      const offset=camera.position.clone().sub(c.target);
+      if(event.key==='ArrowLeft'||event.key==='ArrowRight') offset.applyAxisAngle(new T.Vector3(0,1,0),event.key==='ArrowLeft'?.12:-.12);
+      else if(event.key==='+'||event.key==='=') offset.multiplyScalar(.92);
+      else if(event.key==='-') offset.multiplyScalar(1.08);
+      else return;
+      event.preventDefault();offset.clampLength(7,36);camera.position.copy(c.target).add(offset);c.update();
+    };
+    element.addEventListener('keydown',handler);return()=>element.removeEventListener('keydown',handler);
+  },[camera,gl]);
   return <>
     <ambientLight intensity={.65}/>
     <directionalLight position={[-5,7,9]} intensity={2.0}/>
@@ -43,5 +56,5 @@ function Scene({config, scan, command, onObject, onCamera, onReady, onError}:{co
   </>;
 }
 export function Stage(props:Parameters<typeof Scene>[0]&{onError:(message:string)=>void}) {
-  return <RenderBoundary onError={props.onError}><Canvas dpr={[1,1.5]} camera={{position:[0,.9,17],fov:38,near:.1,far:100}} gl={{antialias:true,alpha:true,preserveDrawingBuffer:true}} fallback={<div className="stage-error">WebGL is unavailable. Please try a browser with 3D support.</div>} onCreated={({gl})=>{gl.domElement.setAttribute('aria-label','Interactive RACKET guitar. Drag to rotate and scroll to zoom.');gl.domElement.setAttribute('role','img');}}><Scene {...props}/></Canvas></RenderBoundary>;
+  return <RenderBoundary onError={props.onError}><Canvas dpr={[1,1.5]} camera={{position:[0,.9,17],fov:38,near:.1,far:100}} gl={{antialias:true,alpha:true,preserveDrawingBuffer:true}} fallback={<div className="stage-error">WebGL is unavailable. Please try a browser with 3D support.</div>} onCreated={({gl})=>{gl.domElement.setAttribute('aria-label','Interactive RACKET guitar. Drag or use left and right arrow keys to rotate. Scroll or use plus and minus to zoom.');gl.domElement.setAttribute('role','img');gl.domElement.tabIndex=0;}}><Scene {...props}/></Canvas></RenderBoundary>;
 }
