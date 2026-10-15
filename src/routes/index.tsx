@@ -1,24 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { Workbench } from "@/components/racket/Workbench";
 export const Route = createFileRoute("/")({
-  component: Index,
+  ssr: false,
+  head: () => ({ meta: [
+    { title: "RACKET 01 — Make it yours" },
+    { name: "description", content: "Configure RACKET 01 in three dimensions. Explore tactile pickguards, body finishes and hardware. One form. Your finish." },
+    { property: "og:title", content: "RACKET 01 — Make it yours" },
+    { property: "og:description", content: "Same instrument. Different point of view. Explore, configure and save your RACKET 01." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
+  component: Workbench,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
