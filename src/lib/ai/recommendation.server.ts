@@ -5,7 +5,8 @@ import { getLovableAiGatewayResponseHeaders } from './run-id.server.ts';
 const inputSchema=z.object({mood:z.string().trim().max(2000),image:z.string().max(3000000).nullable()}).strict().refine(v=>v.mood.length>0||v.image!==null);
 function imageValid(image:string){
  const match=/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(image);if(!match)return false;
- try{const bytes=atob(match[2].slice(0,32));return match[1]==='jpeg'?bytes.startsWith('\xff\xd8\xff'):match[1]==='png'?bytes.startsWith('\x89PNG\r\n\x1a\n'):bytes.startsWith('RIFF')&&bytes.slice(8,12)==='WEBP';}catch{return false;}
+ const encoded=match[2];if(!encoded)return false;
+ try{const bytes=atob(encoded.slice(0,32));return match[1]==='jpeg'?bytes.startsWith('\xff\xd8\xff'):match[1]==='png'?bytes.startsWith('\x89PNG\r\n\x1a\n'):bytes.startsWith('RIFF')&&bytes.slice(8,12)==='WEBP';}catch{return false;}
 }
 export async function handleRecommendation(request:Request){
  const origin=request.headers.get('origin');if(!origin||origin!==new URL(request.url).origin)return Response.json({message:'Please request a pairing from the RACKET configurator.'},{status:403});
@@ -28,10 +29,12 @@ export async function handleRecommendation(request:Request){
  if(!allowed)return Response.json({message:'You’ve explored a few directions. Please return in an hour for more AI pairings.'},{status:429,headers:{'Retry-After':'3600'}});
  const content:Extract<ModelMessage,{role:'user'}>['content']=[{type:'text',text:input.mood||'Recommend a RACKET 01 pairing inspired by this reference image.'}];
  if(input.image)content.push({type:'image',image:new URL(input.image)});
- const call=createRecommendationCall(request,key,[{role:'user',content}]);
- const encoder=new TextEncoder();let failure:unknown;
+ const cancellation=new AbortController();
+ const signal=AbortSignal.any([request.signal,cancellation.signal]);
+ const call=createRecommendationCall(request,key,[{role:'user',content}],signal);
+ const encoder=new TextEncoder();let failure:unknown,cancelled=false;
  const body=new ReadableStream<Uint8Array>({async start(controller){
-  const send=(event:unknown)=>{if(!request.signal.aborted)controller.enqueue(encoder.encode(JSON.stringify(event)+'\n'));};
+  const send=(event:unknown)=>{if(!signal.aborted&&!cancelled)controller.enqueue(encoder.encode(JSON.stringify(event)+'\n'));};
   try{
    send({type:'status',message:'Finding your angle…'});
    for await(const event of call.result.fullStream){if(event.type==='error')failure=event.error;}
@@ -41,12 +44,12 @@ export async function handleRecommendation(request:Request){
    send({type:'result',recommendation:{...output,title:output.title.slice(0,100),rationale:output.rationale.slice(0,700)}});
   }catch(error){
    const upstream=call.getUpstream();
-   const status=request.signal.aborted?499:upstream.status>=400?upstream.status:502;
+   const status=signal.aborted?499:upstream.status>=400?upstream.status:502;
    const message=upstream.message||'No pairing came back. Please start a new request.';
    if(status===402||status===403){await supabaseAdmin.from('ai_recommendation_gate').upsert({id:'racket',status,message,updated_at:new Date().toISOString()});}
    send({type:'error',status,message});
-  }finally{controller.close();}
- },cancel(){/* request.signal propagates client cancellation */}});
+  }finally{if(!cancelled)controller.close();}
+ },cancel(){cancelled=true;cancellation.abort();}});
  await call.correlation.waitForRunId();const upstream=call.getUpstream();
  const headers=getLovableAiGatewayResponseHeaders(undefined,{'Content-Type':'application/x-ndjson','Cache-Control':'no-cache, no-transform'});
  const run=call.correlation.getRunId();if(run)headers.set('X-Lovable-AIG-Run-ID',run);

@@ -16,3 +16,8 @@
 - Local configurations and theme choice use versioned browser storage because the requested prototype explicitly requires local persistence.
 - Export the same displayed configurable geometry, not a reference model, so downloaded GLBs reflect the selected materials and exploded state.
 - B's configurable model is a dimensional approximation; do not label it FLORA. The original FLORA asset migration is blocked by source-origin access denial.
+- Mood and image recommendations use the AI SDK Responses adapter in server-only modules; stream the final structured result over an internal same-origin NDJSON route so Stop reaches the model.
+- Keep buyer reference images transient, resized in the browser and sent inline; never save mood text or image uploads to Cloud by default.
+- Validate recommendations against the available material enums before exposing Apply; never fall back to keyword matching after an AI failure.
+- Public buyer recommendations require origin validation, bounded inputs and server-side request limits; privileged access is limited to service safety metadata with no buyer data.
+- Persist terminal AI access/credit pauses in a service-only RLS table; no automatic retries or alternative models. Resume only after owner recovery and clearing the corresponding Cloud safety row.
