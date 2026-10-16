@@ -1,5 +1,5 @@
 # RACKET 01 synthesis
-- [ ] Sharpen the whole site's editorial appearance; verify light/dark, narrow layouts, and existing configuration controls.
+- [x] Sharpen the whole site's editorial appearance; verified light/dark, 761/390/320px layouts, material selection, exploded view, saves and persistent theme; routing test passed and build OK.
 - [x] Replace mood keyword matching with AI Gateway recommendations for text and uploaded reference images.
 - [x] Verify real mood/image recommendations, apply-to-guitar flow, cancellation, and mobile states; four schema tests pass and latest build OK.
 - [x] Inspect both sources and reuse B's working configurable 3D engine.
