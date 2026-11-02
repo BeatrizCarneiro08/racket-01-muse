@@ -98,7 +98,7 @@ button:disabled{opacity:.4;}
 .product-note:before{content:'';height:1px;width:30px;background:var(--border);display:block;margin-bottom:10px;}
 .stage-bottom{position:absolute;bottom:47px;left:23px;right:23px;display:flex;justify-content:space-between;gap:10px;}
 .camera-controls{display:flex;gap:2px;border-top:1px solid var(--foreground);padding:2px;}
-.camera-controls .racket-tool{min-height:32px;height:32px;}
+.camera-controls .racket-tool{min-height:44px;height:44px;min-width:44px;}
 .stage-footnote{position:absolute;bottom:18px;left:25px;right:25px;display:flex;justify-content:space-between;color:var(--muted-foreground);font-size:8px;}
 .stage-error{position:absolute;inset:40% 12% auto;padding:20px;background:var(--background);border:1px solid var(--oxblood);z-index:3;font-size:13px;}
 .configuration-rail{padding-top:16px;border-top:1px solid var(--foreground);}
